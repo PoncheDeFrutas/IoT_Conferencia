@@ -14,6 +14,7 @@ void setup()
   setupWiFi();     // Initialize WiFi
   connectToWiFi(); // Connect to WiFi
   setupMQTT();     // Initialize MQTT
+  setupDisplay();  // Initialize OLED display
 }
 
 void loop()

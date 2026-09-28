@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <../include/mqtt.h>
 #include <../include/connection.h>
+#include <../include/display.h>
 
 void setup();
 void loop();
