@@ -26,7 +26,7 @@ class main:
                 }
                 self.mongo.insert(doc)
                 self.mqtt.publish(
-                    f"Temperature: {shared.temperature}, Humidity: {shared.humidity}"
+                    f"RaspberryPi -Temperature: {shared.temperature}, Humidity: {shared.humidity}"
                 )
                 time.sleep(0.2)
         except KeyboardInterrupt:
