@@ -1,16 +1,18 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, request
+from flask import Flask, Response, request
 from flask_cors import CORS
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+load_dotenv()
+
+from camera import generate_frames
+
 app = Flask(__name__)
 
-CORS(app)
-
-load_dotenv()
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB = os.getenv("MONGODB_DB")
@@ -23,7 +25,10 @@ def get_collection():
     global collection
 
     if collection is None:
-        client = MongoClient(MONGODB_URI, server_api=ServerApi("1"))
+        client = MongoClient(
+            MONGODB_URI,
+            server_api=ServerApi("1"),
+        )
 
         collection = client[MONGODB_DB][MONGODB_COLLECTION]
 
@@ -32,8 +37,64 @@ def get_collection():
 
 @app.route("/")
 def index():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "service": "IoT Conference Backend",
+    }
 
+
+@app.route("/camera")
+def camera():
+    return Response(
+        generate_frames(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
+
+@app.route("/camera/snapshot")
+def camera_snapshot():
+    camera = cv2.VideoCapture(
+        0,
+        cv2.CAP_V4L2,
+    )
+
+    camera.set(
+        cv2.CAP_PROP_FOURCC,
+        cv2.VideoWriter_fourcc(*"MJPG"),
+    )
+
+    camera.set(
+        cv2.CAP_PROP_FRAME_WIDTH,
+        640,
+    )
+
+    camera.set(
+        cv2.CAP_PROP_FRAME_HEIGHT,
+        480,
+    )
+
+    success, frame = camera.read()
+
+    camera.release()
+
+    if not success:
+        return {
+            "error": "No se pudo capturar la imagen"
+        }, 500
+
+    success, buffer = cv2.imencode(
+        ".jpg",
+        frame,
+    )
+
+    if not success:
+        return {
+            "error": "No se pudo codificar la imagen"
+        }, 500
+
+    return Response(
+        buffer.tobytes(),
+        mimetype="image/jpeg",
+    )
 
 @app.route("/api/temperature/latest")
 def get_temperature():
@@ -74,4 +135,10 @@ def get_temperature():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True,
+        use_reloader=False,
+        threaded=True,
+    )
