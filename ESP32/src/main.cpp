@@ -57,18 +57,15 @@ void loop()
   }
 
   if (
-      currentMillis -
-          lastDisplayTime >=
+      currentMillis - lastDisplayTime >=
       displayInterval)
   {
-    lastDisplayTime =
-        currentMillis;
+    lastDisplayTime = currentMillis;
 
     float temperature =
         temperatureRead();
 
     updateDisplay(
-        temperature,
         receivedCommand);
   }
 

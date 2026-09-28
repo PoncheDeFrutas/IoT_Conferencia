@@ -16,10 +16,6 @@
 #define OLED_SCL 22
 
 void setupDisplay();
-
-void updateDisplay(
-    float temperature,
-    const String &message
-);
+void updateDisplay(const String &message);
 
 #endif

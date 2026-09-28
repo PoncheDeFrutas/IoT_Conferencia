@@ -109,10 +109,9 @@ void callback(
 
     receivedCommand.trim();
 
-    Serial.print("MQTT RX [");
-    Serial.print(topic);
-    Serial.print("]: ");
+    Serial.print("Received: ");
+    Serial.println(receivedCommand);
 
-    Serial.println(
+    updateDisplay(
         receivedCommand);
 }

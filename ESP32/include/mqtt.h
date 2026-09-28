@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <PubSubClient.h>
+#include <../include/display.h>
 
 #include <../include/connection.h>
 
@@ -26,8 +27,7 @@ void publishSensorData();
 void callback(
     char *topic,
     byte *payload,
-    unsigned int length
-);
+    unsigned int length);
 
 extern PubSubClient mqttClient;
 
