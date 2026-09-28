@@ -3,34 +3,73 @@
 TaskHandle_t task1;
 
 unsigned long lastPublishTime = 0;
-const unsigned long publishInterval = 2000;
+
+const unsigned long publishInterval =
+    2000;
+
+unsigned long lastDisplayTime = 0;
+
+const unsigned long displayInterval =
+    500;
 
 void setup()
 {
   Serial.begin(115200);
-  xTaskCreatePinnedToCore(
-      loop2, "loop2", 4096, NULL, 1, &task1, 0);
 
-  setupWiFi();     // Initialize WiFi
-  connectToWiFi(); // Connect to WiFi
-  setupMQTT();     // Initialize MQTT
-  setupDisplay();  // Initialize OLED display
+  setupDisplay();
+  setupWiFi();
+  connectToWiFi();
+  setupMQTT();
+  xTaskCreatePinnedToCore(
+      loop2,
+      "loop2",
+      4096,
+      NULL,
+      1,
+      &task1,
+      0);
+
+  Serial.println(
+      "ESP32 initialized");
 }
 
 void loop()
 {
   if (!mqttClient.connected())
   {
-    reconnectMQTT(); // Reconnect to MQTT if disconnected
+    reconnectMQTT();
   }
 
-  mqttClient.loop(); // Process MQTT messages
+  mqttLoop();
 
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastPublishTime >= publishInterval)
+  unsigned long currentMillis =
+      millis();
+
+  if (
+      currentMillis -
+          lastPublishTime >=
+      publishInterval)
   {
-    lastPublishTime = currentMillis;
-    publishSensorData(); // Publish sensor data to MQTT
+    lastPublishTime =
+        currentMillis;
+
+    publishSensorData();
+  }
+
+  if (
+      currentMillis -
+          lastDisplayTime >=
+      displayInterval)
+  {
+    lastDisplayTime =
+        currentMillis;
+
+    float temperature =
+        temperatureRead();
+
+    updateDisplay(
+        temperature,
+        receivedCommand);
   }
 
   delay(1);
@@ -40,11 +79,15 @@ void loop2(void *parameter)
 {
   while (true)
   {
-    if (WiFi.status() != WL_CONNECTED)
+    if (
+        WiFi.status() !=
+        WL_CONNECTED)
     {
-      connectToWiFi(); // Attempt to reconnect if disconnected
+      connectToWiFi();
     }
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+    vTaskDelay(
+        1000 /
+        portTICK_PERIOD_MS);
   }
 }

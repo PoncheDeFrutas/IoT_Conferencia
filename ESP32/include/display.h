@@ -19,8 +19,7 @@ void setupDisplay();
 
 void updateDisplay(
     float temperature,
-    bool ledState,
-    String message
+    const String &message
 );
 
 #endif

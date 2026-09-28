@@ -4,7 +4,8 @@ Adafruit_SSD1306 display(
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
     &Wire,
-    OLED_RESET);
+    OLED_RESET
+);
 
 void setupDisplay()
 {
@@ -15,7 +16,8 @@ void setupDisplay()
             OLED_ADDRESS))
     {
         Serial.println(
-            "Error: OLED display not found. Check wiring and address.");
+            "Error: OLED display not found."
+        );
 
         return;
     }
@@ -23,28 +25,34 @@ void setupDisplay()
     display.clearDisplay();
 
     display.setTextColor(
-        SSD1306_WHITE);
+        SSD1306_WHITE
+    );
 
     display.setTextSize(1);
 
     display.setCursor(0, 0);
 
-    display.println("IoT Project");
+    display.println("IoT Conferencia");
     display.println("ESP32");
-    display.println("Initializing...");
+    display.println();
+    display.println("Inicializando...");
 
     display.display();
+
+    Serial.println("OLED initialized");
 }
 
 void updateDisplay(
     float temperature,
-    String message)
+    const String &message)
 {
     display.clearDisplay();
 
-    display.setTextSize(1);
     display.setTextColor(
-        SSD1306_WHITE);
+        SSD1306_WHITE
+    );
+
+    display.setTextSize(1);
 
     display.setCursor(0, 0);
 
@@ -55,22 +63,35 @@ void updateDisplay(
         10,
         127,
         10,
-        SSD1306_WHITE);
+        SSD1306_WHITE
+    );
 
     display.setCursor(0, 15);
 
-    display.print("Temp Chip: ");
-
-    display.print(
-        temperature,
-        1);
-
+    display.print("Chip Temp: ");
+    display.print(temperature, 1);
     display.println(" C");
 
-    display.println();
-    display.println("Message:");
+    display.drawLine(
+        0,
+        27,
+        127,
+        27,
+        SSD1306_WHITE
+    );
 
-    display.println(message);
+    display.setCursor(0, 32);
+
+    display.println("MQTT:");
+
+    if (message.length() > 0)
+    {
+        display.println(message);
+    }
+    else
+    {
+        display.println("Sin mensajes");
+    }
 
     display.display();
 }
