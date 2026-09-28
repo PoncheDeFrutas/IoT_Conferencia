@@ -10,10 +10,10 @@
 #define MQTT_PORT 1883
 
 #define MQTT_TOPIC_TELEMETRY \
-    "ARQUI1B_2026/esp32/telemetry"
+    "ARQUI1B_2026/telemetry"
 
 #define MQTT_TOPIC_COMMANDS \
-    "ARQUI1B_2026/esp32/commands"
+    "ARQUI1B_2026/commands"
 
 void setupMQTT();
 
