@@ -16,6 +16,7 @@ def open_camera():
     )
 
     if not camera.isOpened():
+        camera.release()
         raise RuntimeError(f"No se pudo abrir /dev/video{CAMERA_DEVICE}")
 
     # Tu Logitech C270 soporta MJPG.
@@ -63,17 +64,20 @@ def open_camera():
     return camera
 
 
-def generate_frames():
-    camera = open_camera()
-
+def generate_frames(camera):
+    failed_reads = 0
     try:
         while True:
             success, frame = camera.read()
 
             if not success:
+                failed_reads += 1
+                if failed_reads >= 20:
+                    raise RuntimeError("Se perdió la señal de la cámara")
                 print("No se pudo obtener un frame de la cámara")
                 time.sleep(0.1)
                 continue
+            failed_reads = 0
 
             success, buffer = cv2.imencode(
                 ".jpg",
@@ -87,10 +91,12 @@ def generate_frames():
             if not success:
                 continue
 
+            jpeg = buffer.tobytes()
             yield (
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n"
-                b"\r\n" + buffer.tobytes() + b"\r\n"
+                b"Content-Length: " + str(len(jpeg)).encode() + b"\r\n"
+                b"\r\n" + jpeg + b"\r\n"
             )
 
     finally:

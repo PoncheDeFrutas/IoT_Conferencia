@@ -1,5 +1,6 @@
 import os
 
+import cv2
 from dotenv import load_dotenv
 from flask import Flask, Response, request
 from flask_cors import CORS
@@ -8,11 +9,11 @@ from pymongo.server_api import ServerApi
 
 load_dotenv()
 
-from camera import generate_frames
+from camera import generate_frames, open_camera
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}, r"/camera": {"origins": "*"}})
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB = os.getenv("MONGODB_DB")
@@ -45,9 +46,14 @@ def index():
 
 @app.route("/camera")
 def camera():
+    try:
+        device = open_camera()
+    except RuntimeError as error:
+        return {"error": str(error)}, 503
     return Response(
-        generate_frames(),
+        generate_frames(device),
         mimetype="multipart/x-mixed-replace; boundary=frame",
+        headers={"Cache-Control": "no-store"},
     )
 
 @app.route("/camera/snapshot")
@@ -138,7 +144,7 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=5000,
-        debug=True,
+        debug=False,
         use_reloader=False,
         threaded=True,
     )
