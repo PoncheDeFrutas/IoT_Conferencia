@@ -9,7 +9,7 @@ class mqttClient:
     def __init__(self):
         self.broker = "broker.emqx.io"
         self.port = 1883
-        self.topic = "ARQUI1B_2026/test"
+        self.topic = "ARQUI1B_2026/telemetry"
         self.client = mqtt.Client(
             CallbackAPIVersion.VERSION2,
             protocol=mqtt.MQTTv5,
