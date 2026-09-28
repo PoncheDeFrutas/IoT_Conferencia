@@ -5,7 +5,7 @@ import board
 
 from globals import shared
 
-DHT_PIN = board.D20
+DHT_PIN = board.D14
 
 
 class Sensors:

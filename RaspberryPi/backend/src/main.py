@@ -1,23 +1,37 @@
+import atexit
 import os
 
-import cv2
 from dotenv import load_dotenv
 from flask import Flask, Response, request
 from flask_cors import CORS
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+from camera import camera_stream
+
+
 load_dotenv()
 
-from camera import generate_frames, open_camera
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "*"}, r"/camera": {"origins": "*"}})
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": "*",
+        },
+        r"/camera*": {
+            "origins": "*",
+        },
+    },
+)
+
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB = os.getenv("MONGODB_DB")
 MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION")
+
 
 collection = None
 
@@ -47,60 +61,46 @@ def index():
 @app.route("/camera")
 def camera():
     try:
-        device = open_camera()
+        return Response(
+            camera_stream.generate_frames(),
+            mimetype=(
+                "multipart/x-mixed-replace; "
+                "boundary=frame"
+            ),
+            headers={
+                "Cache-Control": (
+                    "no-store, no-cache, must-revalidate, "
+                    "max-age=0"
+                ),
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
+
     except RuntimeError as error:
-        return {"error": str(error)}, 503
-    return Response(
-        generate_frames(device),
-        mimetype="multipart/x-mixed-replace; boundary=frame",
-        headers={"Cache-Control": "no-store"},
-    )
+        return {
+            "error": str(error),
+        }, 503
+
 
 @app.route("/camera/snapshot")
 def camera_snapshot():
-    camera = cv2.VideoCapture(
-        0,
-        cv2.CAP_V4L2,
-    )
+    try:
+        jpeg = camera_stream.get_snapshot()
 
-    camera.set(
-        cv2.CAP_PROP_FOURCC,
-        cv2.VideoWriter_fourcc(*"MJPG"),
-    )
+        return Response(
+            jpeg,
+            mimetype="image/jpeg",
+            headers={
+                "Cache-Control": "no-store",
+            },
+        )
 
-    camera.set(
-        cv2.CAP_PROP_FRAME_WIDTH,
-        640,
-    )
-
-    camera.set(
-        cv2.CAP_PROP_FRAME_HEIGHT,
-        480,
-    )
-
-    success, frame = camera.read()
-
-    camera.release()
-
-    if not success:
+    except RuntimeError as error:
         return {
-            "error": "No se pudo capturar la imagen"
-        }, 500
+            "error": str(error),
+        }, 503
 
-    success, buffer = cv2.imencode(
-        ".jpg",
-        frame,
-    )
-
-    if not success:
-        return {
-            "error": "No se pudo codificar la imagen"
-        }, 500
-
-    return Response(
-        buffer.tobytes(),
-        mimetype="image/jpeg",
-    )
 
 @app.route("/api/temperature/latest")
 def get_temperature():
@@ -112,7 +112,10 @@ def get_temperature():
         type=int,
     )
 
-    limit = max(1, min(limit, 100))
+    limit = max(
+        1,
+        min(limit, 100),
+    )
 
     data = list(
         collection.find(
@@ -128,7 +131,10 @@ def get_temperature():
                 "timestamp": 1,
             },
         )
-        .sort("timestamp", -1)
+        .sort(
+            "timestamp",
+            -1,
+        )
         .limit(limit)
     )
 
@@ -140,11 +146,16 @@ def get_temperature():
     }
 
 
+atexit.register(camera_stream.stop)
+
+
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=5000,
+
         debug=False,
         use_reloader=False,
+
         threaded=True,
     )
