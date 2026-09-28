@@ -1,0 +1,22 @@
+[project]
+name = "iot"
+version = "0.1.0"
+description = "Proyecto IoT para Raspberry Pi"
+readme = "README.md"
+authors = [{ name = "Ponche", email = "josueguevara792@gmail.com" }]
+requires-python = ">=3.12"
+
+dependencies = [
+    "adafruit-circuitpython-dht>=4.0.12",
+    "paho-mqtt>=2.1.0",
+    "pymongo>=4.18.2",
+    "python-dotenv>=1.0.0",
+    "rpi-gpio>=0.7.1",
+    "rpi-lcd>=0.0.3",
+]
+
+[dependency-groups]
+dev = ["ty>=0.0.84"]
+
+[tool.uv]
+package = false
