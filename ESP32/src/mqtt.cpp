@@ -9,6 +9,8 @@ String receivedCommand = "";
 
 void setupMQTT()
 {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
     mqttClient.setServer(
         MQTT_SERVER,
         MQTT_PORT);
@@ -108,9 +110,21 @@ void callback(
     }
 
     receivedCommand.trim();
+    receivedCommand.toUpperCase();
 
     Serial.print("Received: ");
     Serial.println(receivedCommand);
+
+    if (receivedCommand == "ON")
+    {
+        digitalWrite(LED_PIN, HIGH);
+        Serial.println("LED ON");
+    }
+    else if (receivedCommand == "OFF")
+    {
+        digitalWrite(LED_PIN, LOW);
+        Serial.println("LED OFF");
+    }
 
     updateDisplay(
         receivedCommand);

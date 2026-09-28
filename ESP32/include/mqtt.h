@@ -9,6 +9,7 @@
 
 #define MQTT_SERVER "broker.emqx.io"
 #define MQTT_PORT 1883
+#define LED_PIN 19
 
 #define MQTT_TOPIC_TELEMETRY \
     "ARQUI1B_2026/telemetry"
