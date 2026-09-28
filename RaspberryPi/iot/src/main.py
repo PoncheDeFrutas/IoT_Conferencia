@@ -20,6 +20,7 @@ class main:
             while True:
                 self.sensores.read()
                 doc = {
+                    "MCU": "RaspberryPi",
                     "temperature": shared.temperature,
                     "humidity": shared.humidity,
                     "timestamp": time.time(),
