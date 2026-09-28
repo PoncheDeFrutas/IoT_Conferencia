@@ -1,2 +1,4 @@
-.ruff_cache
-.venv
+.ruff_cache/
+.venv/
+
+.env
