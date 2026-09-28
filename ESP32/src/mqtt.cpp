@@ -3,7 +3,7 @@
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-String receivedCommand = ""; // Variable to store the received command
+String receivedCommand = "";
 
 void setupMQTT()
 {
@@ -20,12 +20,17 @@ void reconnectMQTT()
 {
     while (!mqttClient.connected())
     {
-        if (mqttClient.connect("GRUPO1_ARQUI2"))
+        if (mqttClient.connect("ARQUI1B_2026_ESP32"))
         {
-            mqttClient.subscribe("GRUPO1_ARQUI2/comands/01");
+            mqttClient.subscribe("ARQUI1B_2026/test");
+
+            Serial.println("Connected to MQTT");
         }
         else
         {
+            Serial.print("MQTT failed, rc=");
+            Serial.println(mqttClient.state());
+
             delay(2000);
         }
     }
@@ -33,20 +38,33 @@ void reconnectMQTT()
 
 void publishSensorData()
 {
-    char buffer[16];
+    float temperature = temperatureRead();
 
+    int wifiRSSI = WiFi.RSSI();
+
+    String message =
+        "ESP32 -Temperature: " +
+        String(temperature, 1) +
+        ", WiFi RSSI: " +
+        String(wifiRSSI);
+
+    mqttClient.publish(
+        "ARQUI1B_2026/test",
+        message.c_str());
+
+    Serial.print("Published: ");
+    Serial.println(message);
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    receivedCommand = ""; // Limpia el contenido previo
+    receivedCommand = "";
 
     for (unsigned int i = 0; i < length; i++)
     {
         receivedCommand += (char)payload[i];
     }
 
-    Serial.print("Comando recibido: ");
+    Serial.print("Received command: ");
     Serial.println(receivedCommand);
-
 }
